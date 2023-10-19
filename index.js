@@ -30,6 +30,7 @@ async function run() {
         await client.connect();
 
         const productCollection = client.db('productDB').collection('product');
+        const brandCollection = client.db('brandDB').collection('brand');
 
 
          // for sending data to backend
@@ -40,7 +41,12 @@ async function run() {
             res.send(result);
         })
 
-
+        // for brand name
+        app.get('/brand', async(req, res) => {
+            const cursor = brandCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
 
 
         // Send a ping to confirm a successful connection
