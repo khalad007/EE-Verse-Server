@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 //Middleware
@@ -29,18 +29,22 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const productCollection = client.db('productDB').collection('product');
+        const productCollection = client.db('brandDB').collection('products');
         const brandCollection = client.db('brandDB').collection('brand');
+        const curtCollection = client.db('brandDB').collection('curt');
 
+        //  const query = { brandName: brandName};
 
          // for sending data to backend
-        app.post('/product', async (req, res) => {
+        app.post('/products', async (req, res) => {
             const newProduct = req.body;
             console.log(newProduct);
             const result = await productCollection.insertOne(newProduct);
             res.send(result);
         })
 
+        // for test 
+        app
         // for brand name
         app.get('/brand', async(req, res) => {
             const cursor = brandCollection.find();
@@ -48,6 +52,55 @@ async function run() {
             res.send(result);
         })
 
+        // for 6 brand
+        app.get('/brand/:name', async(req, res) => {
+            const name = req.params.name
+            const query = {brandName: name}
+            const result = await brandCollection.findOne(query)
+            res.send(result);
+        })
+
+        // for one brand
+
+        app.get('/products/:name', async (req, res) => {
+            const name = req.params.name;
+            const query = {brandName: name}
+            const cursor = productCollection.find(query)
+            const result = await cursor.toArray()
+            res.send(result);
+        })
+
+        // for details
+
+        app.get('/productdetails/:id', async (req, res) => {
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await productCollection.findOne(query);
+            res.send(result);
+        })
+
+        // cart read 
+        app.get('/curt', async (req, res) => {
+            const cursor = curtCollection.find()
+            const result = await cursor.toArray()
+            res.send(result);
+        })
+
+        // cart post
+        app.post('/curt', async(req, res) => {
+            const product = req.body
+            const result = await curtCollection.insertOne(product)
+            console.log(product)
+            res.send(result) 
+        })
+
+        // my cart delete 
+        app.delete('/curt/:id', async (req, res) => {
+            const id = req.params.id
+            const query = {_id: new ObjectId(id)}
+            const result = await curtCollection.deleteOne(query);
+            res.send(result);
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
